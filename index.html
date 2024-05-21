@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+</head>
+<body>
+    <div id="app" class="container">
+        <header>
+            <div class="header-left">
+                <h1>JaketPedia</h1>
+            </div>
+            <div class="header-right">
+                <div class="logo">
+                    <img src="img/logo.png" alt="Logo">
+                </div>
+            </div>
+        </header>
+        <div class="invoice-info">
+            <div class="info-left">
+                <div class="info-item">
+                    <label>No. Nota:</label>
+                    <input type="text" v-model="nota">
+                </div>
+                <div class="info-item">
+                    <label>Pelanggan:</label>
+                    <input type="text" v-model="pelanggan">
+                </div>
+                <div class="info-item">
+                    <label>Tanggal:</label>
+                    <input type="date" v-model="tanggal">
+                </div>
+            </div>
+            <div class="info-right">
+                <div class="total-payment">
+                    <p>Total Pembayaran:</p>
+                    <p class="amount">Rp. {{ totalPembayaran.toLocaleString() }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="product-info">
+            <div class="product-item">
+                <label>Kode Barang:</label>
+                <select v-model="selectedItem">
+                    <option v-for="item in items" :value="item">{{ item.nama }}</option>
+                </select>
+                <label>Nama Barang:</label>
+                <input type="text" v-model="selectedItem.nama" disabled>
+                <label>Quantity:</label>
+                <input type="number" v-model.number="quantity" min="1">
+                <button @click="addItem">Tambah Barang</button>
+            </div>
+        </div>
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>ID Barang</th>
+                    <th>Nama Barang</th>
+                    <th>Harga Satuan</th>
+                    <th>Qty</th>
+                    <th>Jumlah</th>
+                    <th>Opsi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(item, index) in invoiceItems" :key="index">
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.nama }}</td>
+                    <td>Rp. {{ item.harga.toLocaleString() }}</td>
+                    <td>{{ item.qty }}</td>
+                    <td>Rp. {{ (item.harga * item.qty).toLocaleString() }}</td>
+                    <td class="delete"><button @click="removeItem(index)">Hapus</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="summary">
+            <div class="summary-left">
+                <div class="summary-item">
+                    <label for="sub-total">Sub Total:</label>
+                    <input type="text" id="sub-total" :value="'Rp. ' + subTotal.toLocaleString()" readonly>
+                </div>
+                <div class="summary-item">
+                    <label for="diskon">Diskon:</label>
+                    <input type="text" id="diskon" v-model.number="diskon">
+                    <span> =</span>
+                    <input type="text" id="diskon-rp" :value="'Rp. ' + diskonAmount.toLocaleString()" readonly>
+                </div>
+                <div class="summary-item">
+                    <label for="total-harga">Total Harga:</label>
+                    <input type="text" id="total-harga" :value="'Rp. ' + totalHarga.toLocaleString()" readonly>
+                </div>
+            </div>
+            <div class="summary-right">
+                <div class="summary-item">
+                    <label for="bayar">Bayar:</label>
+                    <input type="text" id="bayar" v-model.number="bayar">
+                </div>
+                <div class="summary-item">
+                    <label for="kembalian">Kembalian:</label>
+                    <input type="text" id="kembalian" :value="'Rp. ' + kembalian.toLocaleString()" readonly>
+                </div>
+            </div>
+        </div>
+        <div class="button-container">
+            <button class="complete-button" @click="completeTransaction">Selesai</button>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                nota: '',
+                pelanggan: '',
+                tanggal: '',
+                items: [
+                    { id: '001', nama: 'Short Denim Jacket', harga: 799900 },
+                    { id: '002', nama: 'Brog Collared Denim Jacket', harga: 1299000 },
+                    { id: '003', nama: 'Regular Denim Jacket', harga: 499900 },
+                    { id: '004', nama: 'Denim Shacket', harga: 225000 }
+                ],
+                selectedItem: { id: '', nama: '', harga: 0 },
+                quantity: 1,
+                invoiceItems: [],
+                diskon: 0,
+                bayar: 0
+            },
+            computed: {
+                subTotal() {
+                    return this.invoiceItems.reduce((sum, item) => sum + (item.harga * item.qty), 0);
+                },
+                diskonAmount() {
+                    return this.subTotal * (this.diskon / 100);
+                },
+                totalHarga() {
+                    return this.subTotal - this.diskonAmount;
+                },
+                totalPembayaran() {
+                    return this.totalHarga;
+                },
+                kembalian() {
+                    return this.bayar - this.totalHarga;
+                }
+            },
+            methods: {
+                addItem() {
+                    if (this.selectedItem.id && this.quantity > 0) {
+                        this.invoiceItems.push({ ...this.selectedItem, qty: this.quantity });
+                        this.selectedItem = { id: '', nama: '', harga: 0 };
+                        this.quantity = 1;
+                    }
+                },
+                removeItem(index) {
+                    this.invoiceItems.splice(index, 1);
+                },
+                completeTransaction() {
+                    alert('Transaksi selesai!');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
